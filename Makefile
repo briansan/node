@@ -451,6 +451,18 @@ st-checks:
 	# running on the host.
 	iptables-save | grep -q 'calico-st-allow-etcd' || iptables $(IPT_ALLOW_ETCD)
 
+.PHONY: k8s-test
+## Run the k8s tests
+k8s-test:
+	wget https://raw.githubusercontent.com/lwr20/kubeadm-dind-cluster/master/fixed/dind-cluster-v1.10.sh
+	chmod +x dind-cluster-v1.10.sh
+	export CNI_PLUGIN=calico
+	./dind-cluster-v1.10.sh up
+	./dind-cluster-v1.10.sh e2e
+	docker run --net=host -v ~/.kube/config:/root/kubeconfig gcr.io/unique-caldron-775/k8s-e2e
+	./dind-cluster-v1.10.sh down
+	./dind-cluster-v1.10.sh clean
+
 .PHONY: st
 ## Run the system tests
 st: dist/calicoctl busybox.tar calico-node.tar workload.tar run-etcd calico_test.created dist/calico-cni-plugin dist/calico-ipam-plugin
