@@ -458,7 +458,6 @@ k8s-test:
 	chmod +x dind-cluster-v1.10.sh
 	export CNI_PLUGIN=calico
 	./dind-cluster-v1.10.sh up
-	./dind-cluster-v1.10.sh e2e
 	docker run --net=host -v ~/.kube/config:/root/kubeconfig gcr.io/unique-caldron-775/k8s-e2e
 	./dind-cluster-v1.10.sh down
 	./dind-cluster-v1.10.sh clean
