@@ -458,7 +458,11 @@ k8s-test:
 	chmod +x dind-cluster-v1.10.sh
 	export CNI_PLUGIN=calico
 	./dind-cluster-v1.10.sh up
-	docker run --net=host -v ~/.kube/config:/root/kubeconfig gcr.io/unique-caldron-775/k8s-e2e
+	kubectl create ns policy-demo
+	kubectl run --namespace=policy-demo nginx --replicas=2 --image=nginx
+	kubectl expose --namespace=policy-demo deployment nginx --port=80
+	sleep 3
+	kubectl run --namespace=policy-demo access --restart Never --rm -ti --image busybox --command /bin/wget -- -q nginx -O -
 	./dind-cluster-v1.10.sh down
 	./dind-cluster-v1.10.sh clean
 
