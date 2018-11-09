@@ -453,16 +453,38 @@ st-checks:
 
 .PHONY: k8s-test
 ## Run the k8s tests
-k8s-test:
+k8s-test: $(NODE_CONTAINER_CREATED) calico_test.created
 	wget https://raw.githubusercontent.com/lwr20/kubeadm-dind-cluster/master/fixed/dind-cluster-v1.10.sh
 	chmod +x dind-cluster-v1.10.sh
-	export CNI_PLUGIN=calico
-	./dind-cluster-v1.10.sh up
-	kubectl create ns policy-demo
-	kubectl run --namespace=policy-demo nginx --replicas=2 --image=nginx
-	kubectl expose --namespace=policy-demo deployment nginx --port=80
-	sleep 3
-	kubectl run --namespace=policy-demo access --restart Never --rm -ti --image busybox --command /bin/wget -- -q nginx -O -
+	$(MAKE) k8s-stop
+	$(MAKE) k8s-start
+	docker run \
+	    -v $(CURDIR):/code \
+	    -v /var/run/docker.sock:/var/run/docker.sock \
+	    -v /home/$(USER)/.kube/config:/root/.kube/config \
+	    -v /home/$(USER)/.kubeadm-dind-cluster:/root/.kubeadm-dind-cluster \
+	    --privileged \
+	    --net host \
+        $(TEST_CONTAINER_NAME) \
+	    sh -c 'cp /root/.kubeadm-dind-cluster/kubectl /bin/kubectl && ls -ltr /bin/kubectl && which kubectl && cd /code/tests/k8st && nosetests -v --with-xunit --xunit-file="/code/report/k8s-tests.xml" --with-timer'
+	$(MAKE) k8s-stop
+
+.PHONY: k8s-start
+## Start k8s cluster
+k8s-start:
+	CNI_PLUGIN=calico ./dind-cluster-v1.10.sh up
+	docker save $(BUILD_IMAGE):latest-$(ARCH) > calico-node.tar
+	docker cp calico-node.tar kube-master:/calico-node.tar
+	docker cp calico-node.tar kube-node-1:/calico-node.tar
+	docker cp calico-node.tar kube-node-2:/calico-node.tar
+	docker exec kube-master docker load -i /calico-node.tar
+	docker exec kube-node-1 docker load -i /calico-node.tar
+	docker exec kube-node-2 docker load -i /calico-node.tar
+	kubectl apply -f  https://docs.projectcalico.org/v3.3/getting-started/kubernetes/installation/hosted/calicoctl.yaml
+
+.PHONY: k8s-stop
+## Stop k8s cluster
+k8s-stop:
 	./dind-cluster-v1.10.sh down
 	./dind-cluster-v1.10.sh clean
 
@@ -502,8 +524,7 @@ st: dist/calicoctl busybox.tar calico-node.tar workload.tar run-etcd calico_test
 ###############################################################################
 .PHONY: ci
 ## Run what CI runs
-## ci: static-checks fv image-all st
-ci: k8s-test
+ci: static-checks fv image-all st k8s-test
 
 ## Deploys images to registry
 cd:
