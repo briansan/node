@@ -453,11 +453,7 @@ st-checks:
 
 .PHONY: k8s-test
 ## Run the k8s tests
-k8s-test: $(NODE_CONTAINER_CREATED) calico_test.created
-	wget https://raw.githubusercontent.com/lwr20/kubeadm-dind-cluster/master/fixed/dind-cluster-v1.10.sh
-	chmod +x dind-cluster-v1.10.sh
-	$(MAKE) k8s-stop
-	$(MAKE) k8s-start
+k8s-test: $(NODE_CONTAINER_CREATED) calico_test.created k8s-stop k8s-start
 	docker run \
 	    -v $(CURDIR):/code \
 	    -v /var/run/docker.sock:/var/run/docker.sock \
@@ -472,21 +468,19 @@ k8s-test: $(NODE_CONTAINER_CREATED) calico_test.created
 .PHONY: k8s-start
 ## Start k8s cluster
 k8s-start:
-	CNI_PLUGIN=calico ./dind-cluster-v1.10.sh up
-	docker save $(BUILD_IMAGE):latest-$(ARCH) > calico-node.tar
+	CNI_PLUGIN=calico tests/k8st/dind-cluster.sh up
 	docker cp calico-node.tar kube-master:/calico-node.tar
 	docker cp calico-node.tar kube-node-1:/calico-node.tar
 	docker cp calico-node.tar kube-node-2:/calico-node.tar
 	docker exec kube-master docker load -i /calico-node.tar
 	docker exec kube-node-1 docker load -i /calico-node.tar
 	docker exec kube-node-2 docker load -i /calico-node.tar
-	kubectl apply -f  https://docs.projectcalico.org/v3.3/getting-started/kubernetes/installation/hosted/calicoctl.yaml
 
 .PHONY: k8s-stop
 ## Stop k8s cluster
 k8s-stop:
-	./dind-cluster-v1.10.sh down
-	./dind-cluster-v1.10.sh clean
+	tests/k8st/dind-cluster.sh down
+	tests/k8st/dind-cluster.sh clean
 
 .PHONY: st
 ## Run the system tests
