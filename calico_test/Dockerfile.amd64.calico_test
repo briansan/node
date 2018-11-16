@@ -51,7 +51,5 @@ RUN wget https://github.com/coreos/etcd/releases/download/v2.3.3/etcd-v2.3.3-lin
     cd etcd-v2.3.3-linux-amd64 && \
     ln -s etcdctl /usr/local/bin/
 
-COPY * /code/
-
 # The container is used by mounting the code-under-test to /code
 WORKDIR /code/
