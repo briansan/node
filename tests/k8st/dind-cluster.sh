@@ -956,7 +956,7 @@ function dind::run {
     opts+=("${ip_mode}" "$( dind::make-ip-from-cidr ${cidr} $((${node_id}+1)) )")
   done
   opts+=("$@")
-  
+
   local -a args=("systemd.setenv=CNI_PLUGIN=${CNI_PLUGIN}")
   args+=("systemd.setenv=IP_MODE=${IP_MODE}")
   args+=("systemd.setenv=DIND_STORAGE_DRIVER=${DIND_STORAGE_DRIVER}")
@@ -1785,12 +1785,14 @@ function dind::up {
   esac
   dind::deploy-dashboard
   dind::accelerate-kube-dns
-  if [[ (${CNI_PLUGIN} != "bridge" && ${CNI_PLUGIN} != "ptp") || ${SKIP_SNAPSHOT} ]]; then
-    # This is especially important in case of Calico -
-    # the cluster will not recover after snapshotting
-    # (at least not after restarting from the snapshot)
-    # if Calico installation is interrupted
-    dind::wait-for-ready
+  if [[ ${CNI_PLUGIN} != "custom" ]]; then
+      if [[ (${CNI_PLUGIN} != "bridge" && ${CNI_PLUGIN} != "ptp") || ${SKIP_SNAPSHOT} ]]; then
+	  # This is especially important in case of Calico -
+	  # the cluster will not recover after snapshotting
+	  # (at least not after restarting from the snapshot)
+	  # if Calico installation is interrupted
+	  dind::wait-for-ready
+      fi
   fi
   dind::step "Cluster Info"
   echo "Network Mode: ${IP_MODE}"
@@ -1890,7 +1892,7 @@ function dind::down {
     dind::remove_external_access_on_host
   elif [[ "${CNI_PLUGIN}" = "kube-router" ]]; then
     if [[ ${COMMAND} = "down" || ${COMMAND} = "clean" ]]; then
-      # FUTURE: Updated pinned version, after verifying operation 
+      # FUTURE: Updated pinned version, after verifying operation
       docker run --privileged --net=host cloudnativelabs/kube-router:${KUBE_ROUTER_VERSION} --cleanup-config
     fi
   fi
@@ -2002,7 +2004,7 @@ function dind::do-run-e2e {
   local host="$(dind::localhost)"
   if [[ -z "$using_local_linuxdocker" ]]; then
     host="127.0.0.1"
-  fi  
+  fi
   dind::need-source
   local kubeapi test_args term=
   local -a e2e_volume_opts=()

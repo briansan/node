@@ -474,14 +474,19 @@ k8s-test: $(NODE_CONTAINER_CREATED) calico_test.created tests/k8st/dind-cluster.
 
 .PHONY: k8s-start
 ## Start k8s cluster
-k8s-start: tests/k8st/dind-cluster.sh
-	CNI_PLUGIN=calico tests/k8st/dind-cluster.sh up
+k8s-start: tests/k8st/dind-cluster.sh calico-node.tar
+	CNI_PLUGIN=custom POD_CIDR=192.168.0.0/16 SKIP_SNAPSHOT=y tests/k8st/dind-cluster.sh up
+	kubectl apply -f  https://docs.projectcalico.org/master/getting-started/kubernetes/installation/hosted/etcd.yaml
 	docker cp calico-node.tar kube-master:/calico-node.tar
 	docker cp calico-node.tar kube-node-1:/calico-node.tar
 	docker cp calico-node.tar kube-node-2:/calico-node.tar
 	docker exec kube-master docker load -i /calico-node.tar
 	docker exec kube-node-1 docker load -i /calico-node.tar
 	docker exec kube-node-2 docker load -i /calico-node.tar
+	wget https://docs.projectcalico.org/master/getting-started/kubernetes/installation/hosted/calico.yaml -O - | \
+		sed s,quay.io/calico/node:master,$(BUILD_IMAGE):latest-$(ARCH), | \
+		kubectl apply -f -
+	kubectl apply -f https://docs.projectcalico.org/master/getting-started/kubernetes/installation/hosted/calicoctl.yaml
 
 .PHONY: k8s-stop
 ## Stop k8s cluster
