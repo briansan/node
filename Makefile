@@ -455,7 +455,7 @@ st-checks:
 
 ## Get the kubeadm-dind-cluster script
 tests/k8st/dind-cluster.sh:
-	wget -O tests/k8st/dind-cluster.sh https://raw.githubusercontent.com/neiljerram/kubeadm-dind-cluster/master/dind-cluster.sh
+	wget -O tests/k8st/dind-cluster.sh https://raw.githubusercontent.com/neiljerram/kubeadm-dind-cluster/allow-custom-cni-plugin/fixed/dind-cluster-v1.10.sh
 	chmod +x tests/k8st/dind-cluster.sh
 
 .PHONY: k8s-test
