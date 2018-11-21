@@ -34,7 +34,7 @@ protocol kernel {
   persist;           # Don't remove routes on bird shutdown
   scan time 2;       # Scan kernel routing table every 2 seconds
   import all;
-        export all;
+  export all;
   graceful restart;  # Turn on graceful restart to reduce potential flaps in
                      # routes when reloading BIRD configuration.  With a full
                      # automatic mesh, there is no way to prevent BGP from
