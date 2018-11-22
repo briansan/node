@@ -248,7 +248,7 @@ sub-image-%:
 	$(MAKE) image ARCH=$*
 
 $(BUILD_IMAGE): $(NODE_CONTAINER_CREATED)
-$(NODE_CONTAINER_CREATED): register ./Dockerfile.$(ARCH) $(NODE_CONTAINER_FILES) $(NODE_CONTAINER_BINARY)
+$(NODE_CONTAINER_CREATED): ./Dockerfile.$(ARCH) $(NODE_CONTAINER_FILES) $(NODE_CONTAINER_BINARY)
 	# Check versions of the binaries that we're going to use to build the image.
 	# Since the binaries are built for Linux, run them in a container to allow the
 	# make target to be run on different platforms (e.g. MacOS).
@@ -463,8 +463,8 @@ tests/k8st/dind-cluster.sh:
 .PHONY: k8s-test
 ## Run the k8s tests
 k8s-test: $(NODE_CONTAINER_CREATED) calico_test.created
-	$(MAKE) k8s-stop
-	$(MAKE) k8s-start
+	#$(MAKE) k8s-stop
+	#$(MAKE) k8s-start
 	docker run \
 	    -v $(CURDIR):/code \
 	    -v /var/run/docker.sock:/var/run/docker.sock \
@@ -475,7 +475,7 @@ k8s-test: $(NODE_CONTAINER_CREATED) calico_test.created
         $(TEST_CONTAINER_NAME) \
 	    sh -c 'cp /root/.kubeadm-dind-cluster/kubectl /bin/kubectl && ls -ltr /bin/kubectl && which kubectl && cd /code/tests/k8st && \
 	           nosetests $(K8ST_TO_RUN) -v --with-xunit --xunit-file="/code/report/k8s-tests.xml" --with-timer'
-	$(MAKE) k8s-stop
+	#$(MAKE) k8s-stop
 
 .PHONY: k8s-start
 ## Start k8s cluster
