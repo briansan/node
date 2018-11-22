@@ -101,3 +101,11 @@ def function_name(f):
         return f.__name__
     except Exception:
         return "<unknown function>"
+
+
+def run(command):
+    _log.info("Run: %s", command)
+    out = subprocess.check_output(command,
+                                  shell=True,
+                                  stderr=subprocess.STDOUT)
+    _log.info("Output:\n%s", out)

@@ -22,7 +22,7 @@ from unittest import TestCase
 from deepdiff import DeepDiff
 from kubernetes import client, config
 
-from utils.utils import retry_until_success
+from utils.utils import retry_until_success, run
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
@@ -165,13 +165,13 @@ class TestBase(TestCase):
 
     def delete_and_confirm(self, name, resource_type):
         try:
-            subprocess.check_call("kubectl delete %s %s" % (resource_type, name), shell=True)
+            run("kubectl delete %s %s" % (resource_type, name))
         except subprocess.CalledProcessError:
             pass
 
         def is_it_gone_yet(res_name, res_type):
             try:
-                subprocess.check_call("kubectl get %s %s" % (res_type, res_name), shell=True)
+                run("kubectl get %s %s" % (res_type, res_name))
                 raise self.StillThere
             except subprocess.CalledProcessError:
                 # Success

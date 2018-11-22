@@ -19,7 +19,7 @@ from time import sleep
 from kubernetes import client
 
 from tests.k8st.test_base import TestBase
-from tests.k8st.utils.utils import retry_until_success
+from tests.k8st.utils.utils import retry_until_success, run
 
 _log = logging.getLogger(__name__)
 
@@ -52,25 +52,15 @@ class TestSimplePolicy(TestBase):
         # not yet propagated to the IP set for the ingress policy on
         # the server pod - which can confuse test code that is
         # expecting connection failure for some other reason.
-        subprocess.check_call("kubectl run --generator=run-pod/v1" +
-                              " access -n policy-demo" +
-                              " --image busybox" +
-                              " --command /bin/sleep -- 3600",
-                              shell=True)
-        subprocess.check_call("kubectl run --generator=run-pod/v1" +
-                              " no-access -n policy-demo" +
-                              " --image busybox" +
-                              " --command /bin/sleep -- 3600",
-                              shell=True)
+        run("kubectl run --generator=run-pod/v1 access -n policy-demo" +
+            " --image busybox --command /bin/sleep -- 3600")
+        run("kubectl run --generator=run-pod/v1 no-access -n policy-demo" +
+            " --image busybox --command /bin/sleep -- 3600")
 
     def tearDown(self):
         # Delete deployment
-        subprocess.check_call("kubectl delete --grace-period 0" +
-                              " pod access -n policy-demo",
-                              shell=True)
-        subprocess.check_call("kubectl delete --grace-period 0" +
-                              " pod no-access -n policy-demo",
-                              shell=True)
+        run("kubectl delete --grace-period 0 pod access -n policy-demo")
+        run("kubectl delete --grace-period 0 pod no-access -n policy-demo")
         self.delete_and_confirm("policy-demo", "ns")
 
     def test_simple_policy(self):
@@ -156,10 +146,8 @@ class TestSimplePolicy(TestBase):
     @staticmethod
     def check_connected(name):
         try:
-            subprocess.check_call("kubectl exec %s"
-                                  " -n policy-demo"
-                                  " -- /bin/wget -O /dev/null -q --timeout=1 nginx 2>&1" % name,
-                                  shell=True)
+            run(("kubectl exec %s -n policy-demo" +
+                 " -- /bin/wget -O /dev/null -q --timeout=1 nginx") % name)
         except subprocess.CalledProcessError:
             _log.debug("Failed to contact service")
             return False
