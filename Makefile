@@ -139,6 +139,7 @@ NODE_CONTAINER_BINARY = $(NODE_CONTAINER_BIN_DIR)/calico-node-$(ARCH)
 CRD_PATH=$(CURDIR)/vendor/github.com/projectcalico/libcalico-go/test/
 LOCAL_IP_ENV?=$(shell ip route get 8.8.8.8 | head -1 | awk '{print $$7}')
 ST_TO_RUN?=tests/st/
+K8ST_TO_RUN?=tests/
 # Can exclude the slower tests with "-a '!slow'"
 ST_OPTIONS?=
 
@@ -461,7 +462,9 @@ tests/k8st/dind-cluster.sh:
 
 .PHONY: k8s-test
 ## Run the k8s tests
-k8s-test: $(NODE_CONTAINER_CREATED) calico_test.created tests/k8st/dind-cluster.sh k8s-stop k8s-start
+k8s-test: $(NODE_CONTAINER_CREATED) calico_test.created
+	$(MAKE) k8s-stop
+	$(MAKE) k8s-start
 	docker run \
 	    -v $(CURDIR):/code \
 	    -v /var/run/docker.sock:/var/run/docker.sock \
@@ -470,7 +473,8 @@ k8s-test: $(NODE_CONTAINER_CREATED) calico_test.created tests/k8st/dind-cluster.
 	    --privileged \
 	    --net host \
         $(TEST_CONTAINER_NAME) \
-	    sh -c 'cp /root/.kubeadm-dind-cluster/kubectl /bin/kubectl && ls -ltr /bin/kubectl && which kubectl && cd /code/tests/k8st && nosetests -v --with-xunit --xunit-file="/code/report/k8s-tests.xml" --with-timer'
+	    sh -c 'cp /root/.kubeadm-dind-cluster/kubectl /bin/kubectl && ls -ltr /bin/kubectl && which kubectl && cd /code/tests/k8st && \
+	           nosetests $(K8ST_TO_RUN) -v --with-xunit --xunit-file="/code/report/k8s-tests.xml" --with-timer'
 	$(MAKE) k8s-stop
 
 .PHONY: k8s-start
