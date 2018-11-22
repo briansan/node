@@ -24,7 +24,7 @@ from kubernetes import client, config
 
 from utils.utils import retry_until_success
 
-logging.basicConfig(level=logging.INFO, format="%(message)s")
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
 
 
