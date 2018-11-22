@@ -39,8 +39,38 @@ class TestSimplePolicy(TestBase):
     def setUp(self):
         self.create_service("nginx:1.7.9", "nginx", "policy-demo", 80)
 
+        # Create two client pods that live for the duration of the
+        # test.  We will use 'kubectl exec' to try wgets from these at
+        # particular times.
+        #
+        # We do it this way - instead of one-shot pods that are
+        # created, try wget, and then exit - because it takes a
+        # relatively long time (7 seconds?) in this test setup for
+        # Calico routing and policy to be set up correctly for a newly
+        # created pod.  In particular it's possible that connection
+        # from a just-created pod will fail because that pod's IP has
+        # not yet propagated to the IP set for the ingress policy on
+        # the server pod - which can confuse test code that is
+        # expecting connection failure for some other reason.
+        subprocess.check_call("kubectl run --generator=run-pod/v1" +
+                              " access -n policy-demo" +
+                              " --image busybox" +
+                              " --command /bin/sleep -- 3600",
+                              shell=True)
+        subprocess.check_call("kubectl run --generator=run-pod/v1" +
+                              " no-access -n policy-demo" +
+                              " --image busybox" +
+                              " --command /bin/sleep -- 3600",
+                              shell=True)
+
     def tearDown(self):
         # Delete deployment
+        subprocess.check_call("kubectl delete --grace-period 0" +
+                              " pod access -n policy-demo",
+                              shell=True)
+        subprocess.check_call("kubectl delete --grace-period 0" +
+                              " pod no-access -n policy-demo",
+                              shell=True)
         self.delete_and_confirm("policy-demo", "ns")
 
     def test_simple_policy(self):
@@ -126,14 +156,9 @@ class TestSimplePolicy(TestBase):
     @staticmethod
     def check_connected(name):
         try:
-            subprocess.check_call("kubectl run "
-                                  "--namespace=policy-demo "
-                                  "%s "
-                                  "--restart Never "
-                                  "--rm -i "
-                                  "--image busybox "
-                                  "--command /bin/wget "
-                                  "-- -q --timeout=1 nginx" % name,
+            subprocess.check_call("kubectl exec %s"
+                                  " -n policy-demo"
+                                  " -- /bin/wget -O /dev/null -q --timeout=1 nginx 2>&1" % name,
                                   shell=True)
         except subprocess.CalledProcessError:
             _log.debug("Failed to contact service")
