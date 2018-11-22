@@ -22,7 +22,6 @@ from tests.k8st.test_base import TestBase
 from tests.k8st.utils.utils import start_external_node_with_bgp, retry_until_success
 
 _log = logging.getLogger(__name__)
-_log.setLevel(logging.INFO)
 
 
 bird_conf = """

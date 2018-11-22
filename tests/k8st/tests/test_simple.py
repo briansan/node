@@ -22,7 +22,6 @@ from tests.k8st.test_base import TestBase
 from tests.k8st.utils.utils import retry_until_success
 
 _log = logging.getLogger(__name__)
-_log.setLevel(logging.INFO)
 
 
 class TestAllRunning(TestBase):
