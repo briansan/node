@@ -101,8 +101,8 @@ class TestBase(TestCase):
         pods = self.cluster.list_namespaced_pod(ns)
 
         for pod in pods.items:
+            logger.info("%s\t%s\t%s", pod.metadata.name, pod.metadata.namespace, pod.status.phase)
             assert pod.status.phase == 'Running'
-            print "%s\t%s\t%s" % (pod.metadata.name, pod.metadata.namespace, pod.status.phase)
 
     def create_namespace(self, ns_name):
         self.cluster.create_namespace(client.V1Namespace(metadata=client.V1ObjectMeta(name=ns_name)))

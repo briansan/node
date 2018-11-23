@@ -21,22 +21,21 @@ _log = logging.getLogger(__name__)
 
 
 def start_external_node_with_bgp(name, config):
-    # # Setup external node: use privileged mode for setting routes
-    subprocess.check_call("docker run -d "
-                          "--privileged "
-                          "--name %s "
-                          "--network kubeadm-dind-net "
-                          "mirantis/kubeadm-dind-cluster:v1.10" % name,
-                          shell=True)
+    # Setup external node: use privileged mode for setting routes
+    run("docker run -d "
+        "--privileged "
+        "--name %s "
+        "--network kubeadm-dind-net "
+        "mirantis/kubeadm-dind-cluster:v1.10" % name)
     # Install bird on extra node
-    subprocess.check_call("docker exec %s apt update" % name, shell=True)
-    subprocess.check_call("docker exec %s apt install -y bird" % name, shell=True)
-    subprocess.check_call("docker exec %s mkdir /run/bird" % name, shell=True)
+    run("docker exec %s apt update" % name)
+    run("docker exec %s apt install -y bird" % name)
+    run("docker exec %s mkdir /run/bird" % name)
     with open('bird.conf', 'w') as birdconfig:
         birdconfig.write(config)
-    subprocess.check_call("docker cp bird.conf %s:/etc/bird/bird.conf" % name, shell=True)
-    subprocess.check_call("rm bird.conf", shell=True)
-    subprocess.check_call("docker exec %s service bird restart" % name, shell=True)
+    run("docker cp bird.conf %s:/etc/bird/bird.conf" % name)
+    run("rm bird.conf")
+    run("docker exec %s service bird restart" % name)
 
 
 def retry_until_success(fun,
