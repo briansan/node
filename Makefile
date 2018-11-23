@@ -166,7 +166,7 @@ clean:
 	docker rmi $(BUILD_IMAGE):latest-$(ARCH) || true
 	docker rmi $(TEST_CONTAINER_NAME) || true
 
-	rm tests/k8st/dind-cluster.sh
+	rm tests/k8st/$(DIND_SCR)
 
 ###############################################################################
 # Building the binary
@@ -456,15 +456,39 @@ st-checks:
 	iptables-save | grep -q 'calico-st-allow-etcd' || iptables $(IPT_ALLOW_ETCD)
 
 ## Get the kubeadm-dind-cluster script
-tests/k8st/dind-cluster.sh:
-	wget -O tests/k8st/dind-cluster.sh https://raw.githubusercontent.com/neiljerram/kubeadm-dind-cluster/allow-custom-cni-plugin/fixed/dind-cluster-v1.10.sh
-	chmod +x tests/k8st/dind-cluster.sh
+K8ST_VERSION?=v1.12
+DIND_SCR?=dind-cluster-$(K8ST_VERSION).sh
+tests/k8st/dind-cluster-$(K8ST_VERSION).sh:
+	wget -O tests/k8st/$(DIND_SCR) https://raw.githubusercontent.com/neiljerram/kubeadm-dind-cluster/calico-customization/fixed/$(DIND_SCR)
+	chmod +x tests/k8st/$(DIND_SCR)
 
 .PHONY: k8s-test
 ## Run the k8s tests
-k8s-test: $(NODE_CONTAINER_CREATED) calico_test.created
+k8s-test:
+	$(MAKE) k8s-stop
+	$(MAKE) k8s-start
+	$(MAKE) k8s-run-test
 	#$(MAKE) k8s-stop
-	#$(MAKE) k8s-start
+
+.PHONY: k8s-start
+## Start k8s cluster
+k8s-start: $(NODE_CONTAINER_CREATED) tests/k8st/$(DIND_SCR)
+	CNI_PLUGIN=calico \
+	CALICO_VERSION=master \
+	CALICO_NODE_IMAGE=$(BUILD_IMAGE):latest-$(ARCH) \
+	POD_NETWORK_CIDR=192.168.0.0/16 \
+	SKIP_SNAPSHOT=y \
+	tests/k8st/$(DIND_SCR) up
+
+.PHONY: k8s-stop
+## Stop k8s cluster
+k8s-stop: tests/k8st/$(DIND_SCR)
+	tests/k8st/$(DIND_SCR) down
+	tests/k8st/$(DIND_SCR) clean
+
+.PHONY: k8s-run-test
+## Run k8st in an existing k8s cluster
+k8s-run-test: calico_test.created
 	docker run \
 	    -v $(CURDIR):/code \
 	    -v /var/run/docker.sock:/var/run/docker.sock \
@@ -475,29 +499,6 @@ k8s-test: $(NODE_CONTAINER_CREATED) calico_test.created
         $(TEST_CONTAINER_NAME) \
 	    sh -c 'cp /root/.kubeadm-dind-cluster/kubectl /bin/kubectl && ls -ltr /bin/kubectl && which kubectl && cd /code/tests/k8st && \
 	           nosetests $(K8ST_TO_RUN) -v --with-xunit --xunit-file="/code/report/k8s-tests.xml" --with-timer'
-	#$(MAKE) k8s-stop
-
-.PHONY: k8s-start
-## Start k8s cluster
-k8s-start: tests/k8st/dind-cluster.sh calico-node.tar
-	CNI_PLUGIN=custom POD_NETWORK_CIDR=192.168.0.0/16 SKIP_SNAPSHOT=y tests/k8st/dind-cluster.sh up
-	kubectl apply -f  https://docs.projectcalico.org/$(MANIFEST_VER)/getting-started/kubernetes/installation/hosted/etcd.yaml
-	docker cp calico-node.tar kube-master:/calico-node.tar
-	docker cp calico-node.tar kube-node-1:/calico-node.tar
-	docker cp calico-node.tar kube-node-2:/calico-node.tar
-	docker exec kube-master docker load -i /calico-node.tar
-	docker exec kube-node-1 docker load -i /calico-node.tar
-	docker exec kube-node-2 docker load -i /calico-node.tar
-	wget https://docs.projectcalico.org/$(MANIFEST_VER)/getting-started/kubernetes/installation/hosted/calico.yaml -O - | \
-		sed s,quay.io/calico/node:master,$(BUILD_IMAGE):latest-$(ARCH), | \
-		kubectl apply -f -
-	kubectl apply -f https://docs.projectcalico.org/$(MANIFEST_VER)/getting-started/kubernetes/installation/hosted/calicoctl.yaml
-
-.PHONY: k8s-stop
-## Stop k8s cluster
-k8s-stop: tests/k8st/dind-cluster.sh
-	tests/k8st/dind-cluster.sh down
-	tests/k8st/dind-cluster.sh clean
 
 .PHONY: st
 ## Run the system tests
