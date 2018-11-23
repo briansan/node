@@ -128,7 +128,7 @@ class TestSimplePolicy(TestBase):
         _log.info("Client 'access' connected to protected service")
 
         # Check we cannot talk to service as 'no-access'
-        retry_until_success(self.cannot_connect, retries=10, wait_time=1, function_args=["access"])
+        retry_until_success(self.cannot_connect, retries=10, wait_time=1, function_args=["no-access"])
         _log.info("Client 'no-access' failed to connect to protected service")
 
     def can_connect(self, name):
