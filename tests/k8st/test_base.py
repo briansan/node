@@ -107,7 +107,7 @@ class TestBase(TestCase):
     def create_namespace(self, ns_name):
         self.cluster.create_namespace(client.V1Namespace(metadata=client.V1ObjectMeta(name=ns_name)))
 
-    def create_service(self, image, name, ns, port, replicas=2):
+    def create_service(self, image, name, ns, port, replicas=2, traffic_policy="Local"):
         cluster = self.k8s_client()
         cluster.create_namespace(client.V1Namespace(metadata=client.V1ObjectMeta(name=ns)))
 
@@ -141,6 +141,8 @@ class TestBase(TestCase):
             spec={
                 "ports": [{"port": port}],
                 "selector": {"app": name},
+                "externalTrafficPolicy": traffic_policy,
+                "type": "NodePort",
             }
         )
         api_response = cluster.create_namespaced_service(

@@ -114,10 +114,10 @@ class TestBGPAdvert(TestBase):
             if container.name == "calico-node":
                 route_env_present = False
                 for env in container.env:
-                    if env.name == "CALICO_STATIC_ROUTES":
+                    if env.name == "CALICO_ADVERTISE_CLUSTER_IPS":
                         route_env_present = True
                 if not route_env_present:
-                    container.env.append({"name": "CALICO_STATIC_ROUTES", "value": "10.96.0.0/12", "value_from": None})
+                    container.env.append({"name": "CALICO_ADVERTISE_CLUSTER_IPS", "value": "10.96.0.0/12", "value_from": None})
         api.replace_namespaced_daemon_set("calico-node", "kube-system", node_ds)
         sleep(3)
         retry_until_success(self.check_pod_status, retries=20, wait_time=3, function_args=["kube-system"])
@@ -137,6 +137,7 @@ EOF
     def tearDown(self):
         try:
             run("docker rm -f kube-node-extra")
+            run("kubectl exec -i -n kube-system calicoctl -- /calicoctl delete bgppeer node-extra.peer")
         except subprocess.CalledProcessError:
             pass
         self.delete_and_confirm("bgp-test", "ns")
@@ -148,13 +149,25 @@ EOF
 
         # # Test access to nginx svc from kube-node-extra
 
-        def test():
+        def test_basic():
             run("docker exec kube-node-extra ip r")
             # Assert that a route to the service IP range is present
             run("docker exec kube-node-extra ip r | grep 10.96.0.0/12")
+            # Assert that a route to the nginx serviceIP 
+            cluster_ip = run("kubectl get svc nginx -n bgp-test -o json | jq -r .spec.clusterIP")
+            try:
+              cluster_ip_route = run("docker exec kube-node-extra ip r | grep " + cluster_ip)
+            except subprocess.CalledProcessError as e:
+              _log.error("err: %s", e)             
+              raise e
+
             # Assert that the nginx service can be curled from the external node
             run("docker exec kube-node-extra "
-                "curl --connect-timeout 2 -m 3  "
-                "$(kubectl get svc nginx -n bgp-test -o json | jq -r .spec.clusterIP)")
+                "curl --connect-timeout 2 -m 3 " + cluster_ip)
 
-        retry_until_success(test, retries=6, wait_time=10)
+        retry_until_success(test_basic, retries=6, wait_time=10)
+
+#        def test_traffic_policy_cluster_service():
+#          # Create nginx deployment and service
+#          self.create_service("nginx:1.7.9", "nginx2", "bgp-test", 80)
+
