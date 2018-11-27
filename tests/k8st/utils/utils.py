@@ -104,12 +104,13 @@ def function_name(f):
 
 def run(command):
     _log.info("Cmd: %s", command)
-    proc = subprocess.Popen(command.split(" "))
+    proc = subprocess.Popen(command.split(" "), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = proc.communicate()
-
-    if proc.returncode > 0:
-      raise Exception("non-zero status code: {rc}".format(rc=proc.returncode))
 
     _log.info("Output:\n%s", out)
     _log.error("Error:\n%s", err)
+
+    if proc.returncode > 0:
+      raise subprocess.CalledProcessError(proc.returncode, command)
+
     return out, err

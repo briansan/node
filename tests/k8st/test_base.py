@@ -177,8 +177,25 @@ class TestBase(TestCase):
             except subprocess.CalledProcessError:
                 # Success
                 pass
+            except Exception as e:
+                logger.info("raised error %s" % e)
 
         retry_until_success(is_it_gone_yet, retries=10, wait_time=10, function_args=[name, resource_type])
+
+    def ensure_env_var_ds(self, ns, name, container, env_key, env_value):
+        config.load_kube_config(os.environ.get('KUBECONFIG'))
+        api = client.AppsV1Api(client.ApiClient())
+        node_ds = api.read_namespaced_daemon_set(name, ns, exact=True, export=True)
+        for container in node_ds.spec.template.spec.containers:
+            if container.name == container:
+                env_present = False
+                for env in container.env:
+                    if env.name == env_key:
+                        env_present = True
+                if not env_present:
+                    container.env.append({"name": env_key, "value": env_value, "value_from": None})
+        api.replace_namespaced_daemon_set(name, ns, node_ds)
+ 
 
     class StillThere(Exception):
         pass

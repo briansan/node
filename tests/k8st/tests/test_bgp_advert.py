@@ -106,20 +106,8 @@ class TestBGPAdvert(TestBase):
         # Create nginx deployment and service
         self.create_service("nginx:1.7.9", "nginx", "bgp-test", 80)
 
-        # set CALICO_STATIC_ROUTES=10.96.0.0/12
-        config.load_kube_config(os.environ.get('KUBECONFIG'))
-        api = client.AppsV1Api(client.ApiClient())
-        node_ds = api.read_namespaced_daemon_set("calico-node", "kube-system", exact=True, export=True)
-        for container in node_ds.spec.template.spec.containers:
-            if container.name == "calico-node":
-                route_env_present = False
-                for env in container.env:
-                    if env.name == "CALICO_ADVERTISE_CLUSTER_IPS":
-                        route_env_present = True
-                if not route_env_present:
-                    container.env.append({"name": "CALICO_ADVERTISE_CLUSTER_IPS", "value": "10.96.0.0/12", "value_from": None})
-        api.replace_namespaced_daemon_set("calico-node", "kube-system", node_ds)
-        sleep(3)
+        # set CALICO_ADVERTISE_CLUSTER_IPS=10.96.0.0/12
+        self.ensure_env_var_ds("kube-system", "calico-node", "calico-node", "CALICO_ADVERTISE_CLUSTER_IPS", "10.96.0.0/12")
         retry_until_success(self.check_pod_status, retries=20, wait_time=3, function_args=["kube-system"])
 
         # Establish BGPPeer from cluster nodes to node-extra using calicoctl
@@ -147,7 +135,7 @@ EOF
         Test that BGP routes to services are exported over BGP
         """
 
-        # # Test access to nginx svc from kube-node-extra
+        # Test access to nginx svc from kube-node-extra
 
         def test_basic():
             run("docker exec kube-node-extra ip r")
@@ -155,11 +143,7 @@ EOF
             run("docker exec kube-node-extra ip r | grep 10.96.0.0/12")
             # Assert that a route to the nginx serviceIP 
             cluster_ip = run("kubectl get svc nginx -n bgp-test -o json | jq -r .spec.clusterIP")
-            try:
-              cluster_ip_route = run("docker exec kube-node-extra ip r | grep " + cluster_ip)
-            except subprocess.CalledProcessError as e:
-              _log.error("err: %s", e)             
-              raise e
+            cluster_ip_route = run("docker exec kube-node-extra ip r | grep " + cluster_ip)
 
             # Assert that the nginx service can be curled from the external node
             run("docker exec kube-node-extra "
