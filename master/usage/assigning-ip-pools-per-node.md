@@ -6,7 +6,7 @@ title: Assigning IP pools per-Node
 
 Starting from {{site.prodname}} {{site.min-versions.ip-pool-node-select}}, IP pools can be configured 
 to restrict IP address assignment of workloads to specific Nodes. You may want to assign the IP pool 
-to a specific Node in order to (insert VISA's use-case here).
+to a specific Node in order to (insert use-case here).
 
 ### Purpose of this page
 
