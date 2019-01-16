@@ -50,6 +50,7 @@ The following environment variables can be used to configure the {{site.prodname
 | `ENABLED_CONTROLLERS` | Which controllers to run | namespace, node, policy, serviceaccount, workloadendpoint |
 | `LOG_LEVEL`     | Minimum log level to be displayed. | debug, info, warning, error |
 | `KUBECONFIG`    | Path to a kubeconfig file for Kubernetes API access | path |
+| `SYNC_NODE_LABELS`    | Toggles the synchronization of labels between Kubernetes Nodes and Calico Nodes. | boolean |
 
 If `ENABLED_CONTROLLERS` is not explicitly specified, the following controllers are run by default: policy, namespace, workloadendpoint, serviceaccount
 

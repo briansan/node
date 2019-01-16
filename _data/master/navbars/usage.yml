@@ -51,6 +51,8 @@ toc:
   path: /usage/configuration/conntrack
 - title: Advertising Kubernetes services
   path: /usage/service-advertisement
+- title: Assigning IP Pools per-Node
+  path: /usage/assigning-ip-pools-per-node
 - title: Calico for OpenStack
   section:
   - title: Endpoint Labels

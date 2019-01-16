@@ -21,6 +21,7 @@ spec:
   ipipMode: CrossSubnet
   natOutgoing: true
   disabled: false
+  nodeSelector: all()
 ```
 
 ### IP Pool Definition
@@ -33,17 +34,16 @@ spec:
 
 #### Spec
 
-| Field       | Description                 | Accepted Values   | Schema | Default    |
-|-------------|-----------------------------|-------------------|--------|------------|
-| cidr     | IP range to use for this pool.  | A valid IPv4 or IPv6 CIDR. Subnet length must be at least big enough to fit a single block (by default `/26` for IPv4 or `/122` for IPv6). Must not overlap with the Link Local range `169.254.0.0/16` or `fe80::/10`. | string | |
-| blockSize | The CIDR size of allocation blocks used by this pool. Blocks are allocated on demand to hosts and are used to aggregate routes. The value can only be set when the pool is created. | 20 to 32 (inclusive) for IPv4 and 116 to 128 (inclusive) for IPv6 | int| `26` for IPv4 pools and `122` for IPv6 pools. |
-| ipipMode | The IPIP mode defining when IPIP will be used. | Always, CrossSubnet, Never | string| `Never` |
-| natOutgoing | When enabled, packets sent from {{site.prodname}} networked containers in this pool to destinations outside of this pool will be masqueraded. | true, false | boolean | `false` |
-| disabled | When set to true, {{site.prodname}} IPAM will not assign addresses from this pool. | true, false | boolean | `false` |
+| Field       | Description                 | Accepted Values   | Schema | Default    | Supported Version |
+|-------------|-----------------------------|-------------------|--------|------------|-------------------|
+| cidr     | IP range to use for this pool.  | A valid IPv4 or IPv6 CIDR. Subnet length must be at least big enough to fit a single block (by default `/26` for IPv4 or `/122` for IPv6). Must not overlap with the Link Local range `169.254.0.0/16` or `fe80::/10`. | string | | {{site.min-versions.base}}
+| blockSize | The CIDR size of allocation blocks used by this pool. Blocks are allocated on demand to hosts and are used to aggregate routes. The value can only be set when the pool is created. | 20 to 32 (inclusive) for IPv4 and 116 to 128 (inclusive) for IPv6 | int| `26` for IPv4 pools and `122` for IPv6 pools. | {{site.min-versions.ip-pool-block-size}} |
+| ipipMode | The IPIP mode defining when IPIP will be used. | Always, CrossSubnet, Never | string| `Never` | {{site.min-versions.base}} |
+| natOutgoing | When enabled, packets sent from {{site.prodname}} networked containers in this pool to destinations outside of this pool will be masqueraded. | true, false | boolean | `false` | {{site.min-versions.base}} |
+| disabled | When set to true, {{site.prodname}} IPAM will not assign addresses from this pool. | true, false | boolean | `false` | {{site.min-versions.base}} |
+| nodeSelector | Selects the node that {{site.prodname}} IPAM should assign addresses from this pool to. | | [selector](#node-selector) | all() | {{site.min-versions.ip-pool-node-select}} |
 
-> **Important**: Do not use a custom `blockSize` until **all** Calico components have been updated to a version that 
-> supports it (at least v3.3.0).  Older versions of components do not understand the field so they may corrupt the 
-> IP pool by creating blocks of incorrect size.
+> **Important**: Do not use the newer fields until **all** Calico components have been updated to a version that supports it. Older versions of components that do not understand the field may corrupt the IP pool.
 {: .alert .alert-danger}
 
 #### IPIP
@@ -69,6 +69,19 @@ The default block sizes of `26` for IPv4 and `122` for IPv6 provide blocks of 64
 Increasing the block size from the default (e.g., using `24` for IPv4 to give 256 addresses per block) means fewer blocks per host, and potentially fewer routes. But try to ensure that there are at least as many blocks in the pool as there are hosts.
 
 Reducing the block size from the default (e.g., using `28` for IPv4 to give 16 addresses per block) means more blocks per host and therefore potentially more routes. This can be beneficial if it allows the blocks to be more fairly distributed amongst the hosts.
+
+#### Node Selector
+
+{% include {{page.version}}/selectors.md %}
+
+For details on configuring IP pool node selectors on your deployment, please read the
+[Assigning IP pools per-node guide]({{site.baseurl}}/{{page.version}}/usage/assigning-ip-pools-per-node).
+
+> **Note**: The pool's `disabled` field takes higher precedence than `nodeSelector`
+> i.e. {{site.prodname}} IPAM will not allocate any IPs from the pool if disabled even if it selects the node that it is on.
+> Additionally, any pools that are [specified through the IPAM config]({{site.baseurl}}/{{page.version}}/reference/cni-plugin/configuration#ipam)
+> also take precedence over `nodeSelector`.
+{: .alert .alert-warning}
 
 ### Supported operations
 

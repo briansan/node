@@ -43,6 +43,12 @@ exclude:
   - DOC_STYLE_GUIDE.md
   - hack
 
+min-versions:
+  base: v2.6
+  ip-pool-block-size: v3.3
+  service-ip-advert: v3.4
+  ip-pool-node-select: v3.5
+
 defaults:
   -
     scope:
