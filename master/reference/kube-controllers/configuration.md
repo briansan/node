@@ -45,12 +45,12 @@ configure API access if needed.
 
 The following environment variables can be used to configure the {{site.prodname}} Kubernetes controllers.
 
-| Environment   | Description | Schema |
-| ------------- | ----------- | ------ |
-| `ENABLED_CONTROLLERS` | Which controllers to run | namespace, node, policy, serviceaccount, workloadendpoint |
-| `LOG_LEVEL`     | Minimum log level to be displayed. | debug, info, warning, error |
-| `KUBECONFIG`    | Path to a kubeconfig file for Kubernetes API access | path |
-| `SYNC_NODE_LABELS`    | Toggles the synchronization of labels between Kubernetes Nodes and Calico Nodes. | boolean |
+| Environment   | Description | Schema | Default |
+| ------------- | ----------- | ------ | -------
+| `ENABLED_CONTROLLERS` | Which controllers to run | namespace, node, policy, serviceaccount, workloadendpoint | policy,namespace,serviceaccount,workloadendpoint,node
+| `LOG_LEVEL`     | Minimum log level to be displayed. | debug, info, warning, error | info
+| `KUBECONFIG`    | Path to a kubeconfig file for Kubernetes API access | path | 
+| `SYNC_NODE_LABELS`    | When enabled, Kubernetes node labels will be copied to Calico node objects. | boolean | true
 
 If `ENABLED_CONTROLLERS` is not explicitly specified, the following controllers are run by default: policy, namespace, workloadendpoint, serviceaccount
 
@@ -80,6 +80,12 @@ To enable the node controller, perform the following two steps.
 ```
 
 This controller is only valid when using etcd as the {{site.prodname}} datastore.
+
+Additionally, the node controller can be configure to keeplabels on Kubernetes Node 
+objects and Calico Node objects in sync. By setting `SYNC_NODE_LABELS` to true (enabled 
+by default), labels on Kubernetes Node objects will act as the source of truth and
+will take precedence over labels on the corresponding Calico Node object if the values differ.
+However, labels on the Calico Node object that don't exist in the Kubernetes Node will remain as is.{: .alert .alert-info}
 
 ### Policy controller
 

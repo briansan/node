@@ -84,7 +84,7 @@ Description:
 
 ### Examples
 
-1. Label a workload endpoint
+1. Label a node
    ```bash
    calicoctl label nodes node1 cluster=backend
    ```
@@ -97,9 +97,9 @@ Description:
    {: .no-select-button}
 
 1. Label a node and overwrite the original value of key 'cluster'
-	 ```bash
+   ```bash
    calicoctl label nodes node1 cluster=frontend --overwrite
-	 ```
+   ```
 
    Results indicate that label was successfully overwritten.
 
@@ -109,9 +109,9 @@ Description:
    {: .no-select-button}
 
 1. Remove label with key 'cluster' of the node
-	 ```bash
+   ```bash
    calicoctl label nodes node1 cluster --remove
-	 ```
+   ```
 
    Results indicate that label was successfully removed.
 
@@ -139,23 +139,15 @@ Description:
 ### General options
 
 ```
--c --config=<CONFIG>      Path to the file containing connection
-                          configuration in YAML or JSON format.
-                          [default: /etc/calico/calicoctl.cfg]
+   -c --config=<CONFIG>      Path to the file containing connection
+                             configuration in YAML or JSON format.
+                             [default: /etc/calico/calicoctl.cfg]
 ```
 {: .no-select-button}
-
-> **Note**: In etcd mode, {{site.prodname}} uses an environment variable `SYNC_NODE_LABELS`
-> to toggle behavior related to keeping labels on Kubernetes Node objects and Calico Node objects
-> in sync. When enabled, labels on Kubernetes Node objects will act as the source of truth and
-> will take precedence over labels on the corresponding Calico Node object if the values differ.
-> However, labels on the Calico Node object that don't exist in the Kubernetes Node will remain as is.
-{: .alert .alert-info}
 
 ## See also
 
 -  [Resources]({{site.baseurl}}/{{page.version}}/reference/calicoctl/resources/) for details on all valid resources, including file format
    and schema
--  [IPPool]({{site.baseurl}}/{{page.version}}/reference/calicoctl/resources/ippool) for details on the {{site.prodname}} selector-based ip pool model
 -  [calicoctl configuration]({{site.baseurl}}/{{page.version}}/reference/calicoctl/setup) for details on configuring `calicoctl` to access
    the {{site.prodname}} datastore.
