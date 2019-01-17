@@ -37,7 +37,7 @@ In this example, we created a cluster with 4 nodes across 2 racks (2 nodes/rack)
 - - - - - - - -   - - - - - - - -
 ```
 
-Using the pods IP range `192.168.0.0/16`, we target the following setup: reservet the `192.168.0.0/18` and `192.168.128.0/18` blocks for `rack-0`, `rack-1`, `rack-2`, and `rack-3` respectively.
+Using the pods IP range `192.168.0.0/16`, we target the following setup: reservet the `192.168.0.0/24` and `192.168.1.0/24` blocks for `rack-0`, `rack-1`, `rack-2`, and `rack-3` respectively.
 Let's get started.
 
 
@@ -75,7 +75,7 @@ default-ipv4-ippool   192.168.0.0/16   true   Always     false
    metadata:
      name: rack-0-ippool
    spec:
-     cidr: 192.168.0.0/17
+     cidr: 192.168.0.0/24
      ipipMode: Always
      natOutgoing: true
      nodeSelector: rack == "0"
@@ -89,7 +89,7 @@ EOF
    metadata:
      name: rack-1-ippool
    spec:
-     cidr: 192.168.128.0/17
+     cidr: 192.168.1.0/24
      ipipMode: Always
      natOutgoing: true
      nodeSelector: rack == "1"
@@ -100,8 +100,8 @@ EOF
 
    ```
    NAME                  CIDR             NAT    IPIPMODE   DISABLED   SELECTOR
-   rack-1-ippool         192.168.0.0/17   true   Always     false      rack == "1"
-   rack-2-ippool         192.168.128.0/17  true   Always     false      rack == "2"
+   rack-1-ippool         192.168.0.0/24   true   Always     false      rack == "1"
+   rack-2-ippool         192.168.1.0/24   true   Always     false      rack == "2"
    ```
    {: .no-select-button}
 
@@ -118,19 +118,18 @@ EOF
 
    ```
    NAME                                            WORKLOAD               NODE          NETWORKS            INTERFACE         PROFILES                          NATS
-   kube--node--0-k8s-nginx--5c7588df--4g2b9-eth0   nginx-5c7588df-4g2b9   kube-node-0   192.168.7.129/32    cali79b6f790a38   kns.default,ksa.default.default
-   kube--node--1-k8s-nginx--5c7588df--sl2wq-eth0   nginx-5c7588df-sl2wq   kube-node-1   192.168.54.128/32   calic790f38759d   kns.default,ksa.default.default
-   kube--node--2-k8s-nginx--5c7588df--2bcgv-eth0   nginx-5c7588df-2bcgv   kube-node-2   192.168.174.192/32  calicd34697b75c   kns.default,ksa.default.default
-   kube--node--3-k8s-nginx--5c7588df--dj66l-eth0   nginx-5c7588df-dj66l   kube-node-3   192.168.198.194/32  cali7a3f8f86b3a   kns.default,ksa.default.default
-   kube--node--2-k8s-nginx--5c7588df--lzrhk-eth0   nginx-5c7588df-lzrhk   kube-node-2   192.168.174.193/32  calida5e7e2baf2   kns.default,ksa.default.default
+   kube--node--0-k8s-nginx--5c7588df--4g2b9-eth0   nginx-5c7588df-4g2b9   kube-node-0   192.168.0.65/32    cali79b6f790a38   kns.default,ksa.default.default
+   kube--node--1-k8s-nginx--5c7588df--sl2wq-eth0   nginx-5c7588df-sl2wq   kube-node-1   192.168.0.97/32    calic790f38759d   kns.default,ksa.default.default
+   kube--node--2-k8s-nginx--5c7588df--2bcgv-eth0   nginx-5c7588df-2bcgv   kube-node-2   192.168.1.33/32    calicd34697b75c   kns.default,ksa.default.default
+   kube--node--3-k8s-nginx--5c7588df--dj66l-eth0   nginx-5c7588df-dj66l   kube-node-3   192.168.1.129/32   cali7a3f8f86b3a   kns.default,ksa.default.default
+   kube--node--2-k8s-nginx--5c7588df--lzrhk-eth0   nginx-5c7588df-lzrhk   kube-node-2   192.168.1.34/32    calida5e7e2baf2   kns.default,ksa.default.default
    ```
    {: .no-seleck-button}
 
-   Note how the third byte of the IP address assigned to the workload differ based on what node that they been scheduled to. 
+   Note how the fourth byte of the IP address assigned to the workload differ based on what node that they been scheduled to. 
    Additionally, the assigned address for each workload falls within the respective IP pool that selects the proper rack that they run on.
-   Finally, observe how the third byte of workloads running on two different nodes of the same rack differ but still fall within the CIDR range specified by the IP pool (i.e. kube-node-0 has 7 and kube-node-1 has 54 as the third byte which are different values, but they both fall in the 192.168.0.0/17 range).
 
-## Next Steps
+## Related Links
 
 For more information on the structure of the IP pool resource, see
 [the IP pools reference]({{ site.baseurl }}/{{ page.version }}/reference/calicoctl/resources/ippool).
