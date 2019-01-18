@@ -377,3 +377,8 @@ You can request a floating IP address for a pod through [Kubernetes annotations]
    > **Warning**: This feature can allow pods to receive traffic which may not have been intended for that pod.
    > Users should make sure the proper admission control is in place to prevent users from selecting arbitrary floating IP addresses.
    {: .alert .alert-danger}
+
+#### Specifying IP pools using node selectors
+
+You can configure your cluster so that workloads running a certain node will only allocate IPs from a specific pool. 
+This is done through node labeling and specifying a node selector on IP pools. See the usage doc on [assigning IP addresses based on topology]({{site.baseurl}}/{{page.version}}/usage/assigning-ip-addresses-topology)

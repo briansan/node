@@ -75,12 +75,10 @@ Reducing the block size from the default (e.g., using `28` for IPv4 to give 16 a
 {% include {{page.version}}/selectors.md %}
 
 For details on configuring IP pool node selectors on your deployment, please read the
-[Assigning IP pools per-node guide]({{site.baseurl}}/{{page.version}}/usage/assigning-ip-pools-per-node).
+[Assigning IP addresses based on toplogy guide.]({{site.baseurl}}/{{page.version}}/usage/assigning-ip-addresses-topology).
 
 > **Note**: The pool's `disabled` field takes higher precedence than `nodeSelector`
 > i.e. {{site.prodname}} IPAM will not allocate any IPs from the pool if disabled even if it selects the node that it is on.
-> Additionally, any pools that are [specified through the IPAM config]({{site.baseurl}}/{{page.version}}/reference/cni-plugin/configuration#ipam)
-> also take precedence over `nodeSelector`.
 {: .alert .alert-warning}
 
 ### Supported operations
