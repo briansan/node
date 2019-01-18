@@ -1,5 +1,5 @@
 ---
-title: Assigning IP Addresses based on Topology
+title: Assigning IP addresses based on topology
 ---
 
 ## Why this is useful
@@ -7,7 +7,7 @@ title: Assigning IP Addresses based on Topology
 {{site.prodname}} can be configured to use specific IP pools for different topological areas.
 For example, you may want workloads in a particular rack, zone, or region to receive addresses from the same IP pool.
 This may be desirable either to reduce the number of routes required in the network or to meet requirements imposed by an external firewall device or policy.
-This guide walkthroughs an example of how to set this up.
+This guide walks through an example of how to set this up.
 
 ## How this works
 At a high level, this feature is operated by the setting node labels and then selecting those
@@ -25,13 +25,13 @@ assignment through node selectors).
 
 This guide only applies if you are using {{site.prodname}} IPAM.
 
-**Labeled Nodes**
+**Labeled nodes**
 
-In order to assign IP pools to specific Nodes, these Nodes must be labeled. See the documentation for [calicoctl label]({{site.baseurl}}/{{page.version}}/reference/calicoctl/commands/label) and [kubectl label](https://kubernetes.io/docs/tasks/configure-pod-container/assign-pods-nodes/#add-a-label-to-a-node) for more information on how to do this. We recommend using `kubectl label`.
+In order to assign IP pools to specific nodes, these nodes must be labeled. See the documentation for [calicoctl label]({{site.baseurl}}/{{page.version}}/reference/calicoctl/commands/label) and [kubectl label](https://kubernetes.io/docs/tasks/configure-pod-container/assign-pods-nodes/#add-a-label-to-a-node) for more information on how to do this. We recommend using `kubectl label`.
 
 ### Example: Kubernetes
 
-In this example, we created a cluster with 4 nodes across 2 racks (2 nodes/rack). Consider the following:
+In this example, we created a cluster with four nodes across two racks (two nodes/rack). Consider the following:
 
 ```
        -------------------
@@ -47,7 +47,7 @@ In this example, we created a cluster with 4 nodes across 2 racks (2 nodes/rack)
 - - - - - - - -   - - - - - - - -
 ```
 
-Using the pods IP range `192.168.0.0/16`, we target the following setup: reservet the `192.168.0.0/24` and `192.168.1.0/24` blocks for `rack-0`, `rack-1`, `rack-2`, and `rack-3` respectively.
+Using the pods IP range `192.168.0.0/16`, we target the following setup: reserve the `192.168.0.0/24` and `192.168.1.0/24` blocks for `rack-0`, `rack-1`, `rack-2`, and `rack-3` respectively.
 Let's get started.
 
 
@@ -106,7 +106,7 @@ EOF
 EOF
    ```
 
-   We should now have 2 enabled IP pools, which we can see when running `calicoctl get ippool -o wide`:
+   We should now have two enabled IP pools, which we can see when running `calicoctl get ippool -o wide`:
 
    ```
    NAME                  CIDR             NAT    IPIPMODE   DISABLED   SELECTOR
@@ -117,7 +117,7 @@ EOF
 
 4. Verify that the IP pool node selectors are being respected.
 
-   We will create an nginx deploy with 5 replicas to get a workload running on each node.
+   We will create an nginx deploy with five replicas to get a workload running on each node.
 
    ```
    kubectl create deployment nginx --image nginx
