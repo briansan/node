@@ -25,10 +25,6 @@ assignment through node selectors).
 
 This guide only applies if you are using {{site.prodname}} IPAM.
 
-**Labeled nodes**
-
-In order to assign IP pools to specific nodes, these nodes must be labeled. See the documentation for [calicoctl label]({{site.baseurl}}/{{page.version}}/reference/calicoctl/commands/label) and [kubectl label](https://kubernetes.io/docs/tasks/configure-pod-container/assign-pods-nodes/#add-a-label-to-a-node) for more information on how to do this. We recommend using `kubectl label`.
-
 ### Example: Kubernetes
 
 In this example, we created a cluster with four nodes across two racks (two nodes/rack). Consider the following:
@@ -47,8 +43,8 @@ In this example, we created a cluster with four nodes across two racks (two node
 - - - - - - - -   - - - - - - - -
 ```
 
-Using the pods IP range `192.168.0.0/16`, we target the following setup: reserve the `192.168.0.0/24` and `192.168.1.0/24` blocks for `rack-0`, `rack-1`, `rack-2`, and `rack-3` respectively.
-Let's get started.
+Using the pods IP range `192.168.0.0/16`, we target the following setup: reserve the `192.168.0.0/24` and `192.168.1.0/24`
+pools for `rack-0`, `rack-1`, `rack-2`, and `rack-3` respectively. Let's get started.
 
 
 By installing {{ site.prodname }} without setting the
@@ -70,12 +66,16 @@ default-ipv4-ippool   192.168.0.0/16   true   Always     false
    ```
 
 2. Label the nodes.
+   In order to assign IP pools to specific nodes, these nodes must be labeled
+	 using [kubectl label](https://kubernetes.io/docs/tasks/configure-pod-container/assign-pods-nodes/#add-a-label-to-a-node).
+
    ```
    kubectl label nodes kube-node-0 rack=0
    kubectl label nodes kube-node-1 rack=0
    kubectl label nodes kube-node-2 rack=1
    kubectl label nodes kube-node-3 rack=1 
    ```
+
 3. Create an IP pool for each rack.
 
    ```
@@ -117,26 +117,26 @@ EOF
 
 4. Verify that the IP pool node selectors are being respected.
 
-   We will create an nginx deploy with five replicas to get a workload running on each node.
+   We will create an nginx deployment with five replicas to get a workload running on each node.
 
    ```
    kubectl create deployment nginx --image nginx
    kubectl scale deployment nginx --replicas 5
    ```
 
-   Check that the new workloads now have an address in the proper IP pool allocated for rack that the node is on by running `calicoctl get wep -owide`:
+   Check that the new workloads now have an address in the proper IP pool allocated for rack that the node is on by running `kubectl get pods -owide`.
 
    ```
-   NAME                                            WORKLOAD               NODE          NETWORKS            INTERFACE         PROFILES                          NATS
-   kube--node--0-k8s-nginx--5c7588df--4g2b9-eth0   nginx-5c7588df-4g2b9   kube-node-0   192.168.0.65/32    cali79b6f790a38   kns.default,ksa.default.default
-   kube--node--1-k8s-nginx--5c7588df--sl2wq-eth0   nginx-5c7588df-sl2wq   kube-node-1   192.168.0.97/32    calic790f38759d   kns.default,ksa.default.default
-   kube--node--2-k8s-nginx--5c7588df--2bcgv-eth0   nginx-5c7588df-2bcgv   kube-node-2   192.168.1.33/32    calicd34697b75c   kns.default,ksa.default.default
-   kube--node--3-k8s-nginx--5c7588df--dj66l-eth0   nginx-5c7588df-dj66l   kube-node-3   192.168.1.129/32   cali7a3f8f86b3a   kns.default,ksa.default.default
-   kube--node--2-k8s-nginx--5c7588df--lzrhk-eth0   nginx-5c7588df-lzrhk   kube-node-2   192.168.1.34/32    calida5e7e2baf2   kns.default,ksa.default.default
+   NAME                   READY   STATUS    RESTARTS   AGE    IP             NODE          NOMINATED NODE   READINESS GATES
+   nginx-5c7588df-prx4z   1/1     Running   0          6m3s   192.168.0.64   kube-node-0   <none>           <none>
+   nginx-5c7588df-s7qw6   1/1     Running   0          6m7s   192.168.0.129  kube-node-1   <none>           <none>
+   nginx-5c7588df-w7r7g   1/1     Running   0          6m3s   192.168.1.65   kube-node-2   <none>           <none>
+   nginx-5c7588df-62lnf   1/1     Running   0          6m3s   192.168.1.1    kube-node-3   <none>           <none>
+   nginx-5c7588df-pnsvv   1/1     Running   0          6m3s   192.168.1.64   kube-node-2   <none>           <none>
    ```
    {: .no-seleck-button}
 
-   Note how the fourth byte of the IP address assigned to the workload differ based on what node that they been scheduled to. 
+   Note how the grouping of IP address assigned to the workloads differ based on what node that they were scheduled to.
    Additionally, the assigned address for each workload falls within the respective IP pool that selects the proper rack that they run on.
 
 ## Related Links
