@@ -2,12 +2,22 @@
 title: Assigning IP Addresses based on Topology
 ---
 
-## About IP pool Node selection
+## Why this is useful
 
 {{site.prodname}} can be configured to use specific IP pools for different topological areas.
 For example, you may want workloads in a particular rack, zone, or region to receive addresses from the same IP pool.
 This may be desirable either to reduce the number of routes required in the network or to meet requirements imposed by an external firewall device or policy.
 This guide walkthroughs an example of how to set this up.
+
+## How this works
+At a high level, this feature is operated by the setting node labels and then selecting those
+nodes via node selector on your IP pool resources. Note that there are a variety of other ways
+to specify IP address assignment behavior that can be found in the
+[cni-plugin configuration reference document]({{site.baseurl}}/{{page.version}}/reference/cni-plugin/configuration).
+Each approach has its own use-case but this particular one takes on the lowest priority
+compared to the others (i.e. Specifying IP pools through configuration has precendence
+over IP addresses through annotations which has precendence over this IP pool
+assignment through node selectors).
 
 ## Prerequisites
 
