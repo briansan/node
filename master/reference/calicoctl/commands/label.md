@@ -3,7 +3,7 @@ title: calicoctl label
 canonical_url: 'https://docs.projectcalico.org/v3.5/reference/calicoctl/commands/apply'
 ---
 
-This sections describes the `calicoctl label` command.
+This section describes the `calicoctl label` command.
 
 Read the [calicoctl command line interface user reference]({{site.baseurl}}/{{page.version}}/reference/calicoctl/)
 for a full list of calicoctl commands.
@@ -74,7 +74,7 @@ Description:
 
   Attempting to label resources that do not exist will get an error.
 
-  Attempting to remove a label that does not in the resource will get an error.
+  Attempting to remove a label that does not exist in the resource will get an error.
 
   When labeling a resource on an existing key:
   - gets an error if option --overwrite is not provided.
@@ -84,7 +84,7 @@ Description:
 
 ### Examples
 
-1. Label a node
+1. Label a node.
    ```bash
    calicoctl label nodes node1 cluster=backend
    ```
@@ -96,7 +96,7 @@ Description:
    ```
    {: .no-select-button}
 
-1. Label a node and overwrite the original value of key 'cluster'
+1. Label a node and overwrite the original value of key `cluster`.
    ```bash
    calicoctl label nodes node1 cluster=frontend --overwrite
    ```
@@ -108,12 +108,12 @@ Description:
    ```
    {: .no-select-button}
 
-1. Remove label with key 'cluster' of the node
+1. Remove label with key `cluster` from the node.
    ```bash
    calicoctl label nodes node1 cluster --remove
    ```
 
-   Results indicate that label was successfully removed.
+   Results indicate that the label was successfully removed.
 
    ```bash
    Successfully removed label cluster from nodes node1.

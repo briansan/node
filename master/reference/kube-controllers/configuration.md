@@ -81,11 +81,11 @@ To enable the node controller, perform the following two steps.
 
 This controller is only valid when using etcd as the {{site.prodname}} datastore.
 
-Additionally, the node controller can be configured to keep labels on Kubernetes node
-objects and Calico node objects in sync. By setting `SYNC_NODE_LABELS` to true (enabled
-by default), labels on Kubernetes node objects will act as the source of truth and
-will take precedence over labels on the corresponding Calico node object if the values differ.
-However, labels on the Calico node object that don't exist in the Kubernetes node will remain as is.{: .alert .alert-info}
+Set `SYNC_NODE_LABELS` to true (enabled by default) to ensure that labels on
+Kubernetes node resources remain in-sync with labels on the corresponding Calico
+node resource. If both node resources specify a label with different values,
+the Kubernetes node resource takes precedence. Labels on the Calico node
+resource that don't exist in the Kubernetes node will remain as is.
 
 ### Policy controller
 

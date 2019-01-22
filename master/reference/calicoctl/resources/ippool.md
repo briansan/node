@@ -75,10 +75,11 @@ Reducing the block size from the default (e.g., using `28` for IPv4 to give 16 a
 {% include {{page.version}}/selectors.md %}
 
 For details on configuring IP pool node selectors on your deployment, please read the
-[Assigning IP addresses based on toplogy guide.]({{site.baseurl}}/{{page.version}}/usage/assigning-ip-addresses-topology).
+[Assigning IP addresses based on topology guide.]({{site.baseurl}}/{{page.version}}/usage/assigning-ip-addresses-topology).
 
-> **Note**: The pool's `disabled` field takes higher precedence than `nodeSelector`
-> i.e. {{site.prodname}} IPAM will not allocate any IPs from the pool if disabled even if it selects the node that it is on.
+> **Note**: The pool's `disabled` field takes higher precedence than
+> `nodeSelector`. This means that {{site.prodname}} IPAM will not allocate any
+> IPs from a disabled pool even if it selects the node that it is on.
 {: .alert .alert-warning}
 
 ### Supported operations
