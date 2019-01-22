@@ -43,9 +43,6 @@ spec:
 | disabled | When set to true, {{site.prodname}} IPAM will not assign addresses from this pool. | true, false | boolean | `false` |
 | nodeSelector | Selects the node that {{site.prodname}} IPAM should assign addresses from this pool to. | | [selector](#node-selector) | all() |
 
-> **Important**: Do not use the newer fields until **all** Calico components have been updated to a version that supports it. Older versions of components that do not understand the field may corrupt the IP pool.
-{: .alert .alert-danger}
-
 #### IPIP
 Routing of packets using IP-in-IP will be used when the destination IP address
 is in an IP Pool that has IPIP enabled.  In addition, if the `ipipMode` is set to `CrossSubnet`,
